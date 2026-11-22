@@ -26,7 +26,7 @@ jobs:
         with:
           ref: refs/heads/${{ github.event.repository.default_branch }}
           persist-credentials: false
-      - name: Install AgentOrch
+      - name: Install Agentorch
         env:
           TRACKER_REF: ${{ vars.AGENTORCH_TRACKER_REF }}
         run: |

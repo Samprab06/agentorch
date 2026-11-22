@@ -1,7 +1,7 @@
 # Team rules for every agent
 
 This project coordinates humans and coding agents through GitHub. The `agentorch`
-command (see the [AgentOrch quickstart](https://github.com/Samprab06/agentorch))
+command (see the [Agentorch quickstart](https://github.com/Samprab06/agentorch))
 talks to GitHub for you.
 It uses `GH_TOKEN` or your `gh auth login` session.
 

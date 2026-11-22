@@ -1,7 +1,7 @@
 # Connect a ticket tracker
 
 The GitHub board and PR relay work on their own. Add a tracker when your team
-wants to keep tickets in an external system. AgentOrch uses three stages:
+wants to keep tickets in an external system. Agentorch uses three stages:
 
 | GitHub workflow | Tracker stage |
 | --- | --- |
@@ -39,7 +39,7 @@ that client, so the CLI and Actions each need their own configured access.
 Commit the project config and tracker workflow to the default branch. To
 enable automatic review and merge updates, set the GitHub Actions repository
 variable `AGENTORCH_SYNC_TRACKER` to `true` and add the `LINEAR_API_KEY` Actions
-secret. The workflow installs AgentOrch from its main branch by default. Set
+secret. The workflow installs Agentorch from its main branch by default. Set
 `AGENTORCH_TRACKER_REF` to a tested tag or commit SHA to pin it.
 
 ## Use a ticket
