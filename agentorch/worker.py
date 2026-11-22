@@ -29,7 +29,7 @@ from pathlib import Path
 from typing import Any, Callable, Dict, List, Optional
 from urllib.parse import urlencode
 
-from agentorch import agents, labels, tasks
+from agentorch import agents, labels, tasks, tracker
 from agentorch.board import Board, mentions
 from agentorch.config import Config, Repository
 from agentorch.github import NETWORK_ERRORS, GitHub, GitHubError, git_auth_env, provider_for
@@ -249,6 +249,15 @@ class RepoWorker:
             git(self.checkout, "worktree", "add", "--detach", str(worktree), base)
             self.state.save(task, base=base)
             issue = self.still_approved(task)
+            if issue.get("author_association") in COLLABORATORS:
+                try:
+                    reference = tracker.linked_ticket(issue.get("body"))
+                    if reference:
+                        self.state.save(task, tracker_ticket=reference)
+                        if self.repo.tracker is not None:
+                            tracker.from_settings(self.repo.tracker).update(reference, "in-progress")
+                except (ValueError, RuntimeError, OSError, KeyError, subprocess.SubprocessError) as error:
+                    self.log(f"#{number}: tracker claim failed ({error}); continuing with the task")
             agent = agents.build(self.repo.agent, sandboxed=self.runner.sandboxed)
             agent.populate_home(home)
             prompt = agents.task_prompt(self.repo.name, number, issue["title"], issue.get("body") or "",
@@ -325,6 +334,8 @@ class RepoWorker:
                         + (f" with `{' '.join(self.repo.verify)}`." if self.repo.verify else "."))
                 if task.get("requester"):
                     body += f"\n\nRequested by @{task['requester']}."
+                if task.get("tracker_ticket"):
+                    body += "\n\n" + tracker.marker(task["tracker_ticket"])
                 pr = self.github.request("POST", "/pulls", {
                     "title": task["title"], "head": branch, "base": task["base_branch"],
                     "body": body, "draft": True,

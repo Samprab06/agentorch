@@ -1,7 +1,7 @@
 {
   "identity": {
-    "human": "Sam",
-    "agent": "Oracle"
+    "human": "Team Operator",
+    "agent": "Worker"
   },
   "approvers": [
     "your-github-login"
@@ -23,12 +23,12 @@
     "timeout": 900
   },
   "subagents": {
-    "oracle-backend": {
+    "server-backend": {
       "description": "APIs, database, server code",
       "instructions": "Own the backend.",
       "max_subagents": 4
     },
-    "oracle-frontend": {
+    "server-frontend": {
       "description": "UI pages and components",
       "instructions": "Own the frontend.",
       "max_subagents": 4

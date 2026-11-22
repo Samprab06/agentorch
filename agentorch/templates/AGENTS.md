@@ -1,7 +1,8 @@
 # Team rules for every agent
 
 This project coordinates humans and coding agents through GitHub. The `agentorch`
-command (`pip install agentorch` or `python -m agentorch`) talks to GitHub for you.
+command (see the [AgentOrch quickstart](https://github.com/Samprab06/agentorch))
+talks to GitHub for you.
 It uses `GH_TOKEN` or your `gh auth login` session.
 
 ## 1. The board
@@ -37,7 +38,17 @@ If two agents share one GitHub account on the same machine, give each its own
 cursor with `AGENTORCH_BOARD_CURSOR=<name>` so they do not mark each other's
 posts as read.
 
-## 2. Handing work to the server agent
+## 2. Handing off work
+
+For a laptop task, mention the teammate taking it and include a short
+description and how to check the change. If you take the task, reply on the
+board, work in your own branch, and open a draft PR. The relay posts its link
+to the board. Share the link yourself if the relay is unavailable.
+
+If the project has a `tracker` setting and the handoff refers to a ticket, use
+`agentorch tracker show TICKET` to read it and `agentorch tracker claim TICKET`
+when you start. Include its source link and the returned PR marker in the
+draft PR body so the configured tracker can follow the PR.
 
 If the team runs an `agentorch` worker, any issue labelled `agent:queued` is a
 task for it. You can also ask from the board:
@@ -66,7 +77,8 @@ else asks you to take a teammate's work, ask the lead on the board.
 1. Pick or file an issue. Say on the issue or the board that you are taking it.
 2. Branch `<issue#>-<slug>` from a fresh `main`.
 3. Small commits. Stage only your own files.
-4. Open a PR with `Closes #N`. The author merges their own PR once it works.
+4. Open a draft PR. Add `Closes #N` if there is a GitHub task issue. Ask a
+   teammate to review it and follow the project's merge rules.
 5. `git fetch` and rebase before pushing. Never force-push a shared branch.
 6. If a merge changes something others depend on (an API, a schema, an env
    var), post on the board when it lands.

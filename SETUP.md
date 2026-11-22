@@ -1,5 +1,8 @@
 # Setting up agentorch
 
+Start with the [two-agent laptop quickstart](README.md#open-your-first-draft-pr).
+Use the [tracker guide](docs/TRACKERS.md) to add external tickets to that workflow.
+
 This guide explains how agentorch works and how to set it up. It is written so a
 coding agent can follow it step by step with a human. If you are that agent, read
 **Notes for agents** first.
@@ -100,7 +103,7 @@ Needs: Python 3.9+, git, and a GitHub login with write access to the repository
 (`gh auth login`, or `GH_TOKEN` with Issues read/write).
 
 ```sh
-pip install git+https://github.com/Samprab06/agent-orchestration
+pip install git+https://github.com/Samprab06/agentorch
 cd <project checkout>
 agentorch init
 ```
@@ -122,7 +125,7 @@ the relay post on the board.
 ## 3. Each teammate's machine
 
 ```sh
-pip install git+https://github.com/Samprab06/agent-orchestration   # or: python -m pip install --user ...
+pip install git+https://github.com/Samprab06/agentorch   # or: python -m pip install --user ...
 gh auth login                                  # or export GH_TOKEN=...
 export AGENTORCH_SIGNATURE="<Name>'s <Agent>"  # e.g. "Priya's Codex"
 agentorch board whoami
@@ -147,8 +150,8 @@ account.
 ### 4.1 Install
 
 ```sh
-git clone https://github.com/Samprab06/agent-orchestration
-cd agent-orchestration
+git clone https://github.com/Samprab06/agentorch
+cd agentorch
 deploy/install.sh
 ```
 
@@ -213,6 +216,7 @@ always approve (part 1, rule 3), so whoever controls the server controls approva
 | `.auto_approve` | global | Per-repository approval policy |
 | `.allow_workflow_changes` | `false` | Allow tasks to change `.github/` |
 | `.prompt_preamble` | `""` | Extra instructions for every task in this repository |
+| `.tracker` | none | Optional tracker backend and states for [linked tasks](docs/TRACKERS.md) |
 
 Agent notes:
 
@@ -347,7 +351,7 @@ the code and pull requests. Linear holds the tickets and the Agent Board.
 5. **Teammates' local agents** take tickets labelled with their own agent name with
    `agentorch ticket next` and finish with `agentorch ticket done ENG-12 --pr URL`.
 6. **The board** is a Linear ticket labelled `board` ("Agent Board"). Its comments
-   are the chat. Agents mention each other by agent name (`@oracle-backend`).
+   are the chat. Agents mention each other by agent name (`@server-backend`).
 
 ### Linear MCP for the interactive BanyanCode (optional)
 
@@ -377,7 +381,7 @@ token, so no browser login is needed on a headless server:
 2. Turn on Linear's GitHub integration for the code repository, so branches and PRs
    that mention ticket IDs are linked.
 3. In the project checkout:
-   `LINEAR_API_KEY=... agentorch init --linear ENG --agents oracle-backend oracle-frontend priya-codex`.
+   `LINEAR_API_KEY=... agentorch init --linear ENG --agents server-backend server-frontend priya-codex`.
    This creates the labels and the Agent Board ticket, then writes `.agentorch.json`
    (`{"linear": {"team": "ENG", "board_issue": "ENG-1"}}`), the Linear `AGENTS.md`
    and the Claude hooks. Commit them.
@@ -423,7 +427,7 @@ It never deletes, closes, merges or touches finished tickets. Each action is mar
 `agentorch supervise --dry-run`, then enable the timer:
 `systemctl --user enable --now agentorch-supervise.timer`.
 
-**Check:** `agentorch ticket new "Add a hello.txt containing hi" --agent oracle-backend`.
+**Check:** `agentorch ticket new "Add a hello.txt containing hi" --agent server-backend`.
 Within a minute it moves to In Progress, then to In Review with a draft PR link.
 
 ## 7. Troubleshooting

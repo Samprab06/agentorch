@@ -86,7 +86,7 @@ def _argv(value: Any, field: str) -> Optional[List[str]]:
 class Repository:
     def __init__(self, data: Dict[str, Any], defaults: "Config"):
         allowed = {"repository", "branch", "board_issue", "auto_approve", "verify", "agent",
-                   "allow_workflow_changes", "prompt_preamble"}
+                   "allow_workflow_changes", "prompt_preamble", "tracker"}
         unknown = set(data) - allowed
         if unknown:
             raise ConfigError(f"Unknown repository keys: {', '.join(sorted(unknown))}")
@@ -106,6 +106,9 @@ class Repository:
         self.agent: Dict[str, Any] = dict(defaults.agent, **(data.get("agent") or {}))
         self.allow_workflow_changes: bool = bool(data.get("allow_workflow_changes", False))
         self.prompt_preamble: str = data.get("prompt_preamble", "")
+        self.tracker: Optional[Dict[str, Any]] = data.get("tracker")
+        if self.tracker is not None and not isinstance(self.tracker, dict):
+            raise ConfigError(f"{self.name}: tracker must be a JSON object")
 
     @property
     def key(self) -> str:

@@ -27,7 +27,7 @@ jobs:
     timeout-minutes: 3
     if: >-
       github.event_name == 'pull_request_review' ||
-      (github.event.action == 'opened' && !github.event.pull_request.draft) ||
+      github.event.action == 'opened' ||
       github.event.action == 'ready_for_review' ||
       (github.event.action == 'closed' && github.event.pull_request.merged)
     steps:
@@ -47,6 +47,7 @@ jobs:
           REVIEW_STATE: ${{ github.event.review.state }}
           REVIEWER: ${{ github.event.review.user.login }}
           REVIEW_URL: ${{ github.event.review.html_url }}
+          DRAFT: ${{ github.event.pull_request.draft }}
         run: |
           set -euo pipefail
           if [ -z "${BOARD}" ]; then
@@ -58,7 +59,13 @@ jobs:
           fi
           author="@${AUTHOR%\[bot\]}"
           case "${EVENT}:${ACTION}:${REVIEW_STATE}" in
-            pull_request_target:opened:*|pull_request_target:ready_for_review:*)
+            pull_request_target:opened:*)
+              if [ "${DRAFT}" = true ]; then
+                msg="Draft PR #${NUMBER} opened: ${TITLE} (by ${author}) ${URL}"
+              else
+                msg="PR #${NUMBER} is ready for review: ${TITLE} (by ${author}) ${URL}"
+              fi ;;
+            pull_request_target:ready_for_review:*)
               msg="PR #${NUMBER} is ready for review: ${TITLE} (by ${author}) ${URL}" ;;
             pull_request_target:closed:*)
               msg="Merged #${NUMBER} into ${BASE}: ${TITLE} (by ${author}, merged by @${ACTOR}). Pull ${BASE} before your next change. ${URL}" ;;

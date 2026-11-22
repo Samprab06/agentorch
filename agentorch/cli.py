@@ -69,7 +69,8 @@ def linear_settings(config: Optional[Config]) -> Optional[dict]:
 
 def make_board(args: argparse.Namespace):
     config = load_config(args, required=False)
-    settings = linear_settings(config)
+    project = project_settings()
+    settings = linear_settings(config) if "linear" in project or "board_issue" not in project else None
     if settings and not getattr(args, "repo", None):
         from agentorch.linear import LinearBoard, find_board, from_settings
         linear = from_settings(settings)
@@ -343,6 +344,43 @@ def cmd_task(args: argparse.Namespace) -> int:
             print(f"requeued #{args.number}")
         return 0
     except ERRORS as error:
+        return fail(str(error))
+
+
+def cmd_tracker(args: argparse.Namespace) -> int:
+    from agentorch import tracker
+
+    try:
+        settings = project_settings().get("tracker")
+        if args.tracker_cmd == "sync-pr":
+            config = load_config(args, required=False)
+            repo = target_repo(args, config)
+            updated = tracker.sync_pr(client(args, config, repo), args.number, settings)
+            print("Synced tracker ticket" if updated else "No tracker update for this PR")
+            return 0
+
+        tracker.marker(args.reference)
+        backend = tracker.from_settings(settings)
+        if args.tracker_cmd == "claim":
+            backend.update(args.reference, "in-progress")
+            print(f"Synced claim for {args.reference}")
+            return 0
+
+        ticket = backend.read(args.reference)
+        link = tracker.marker(ticket["id"])
+        if args.tracker_cmd == "show":
+            print(json.dumps({**ticket, "pr_marker": link}, indent=2, ensure_ascii=False))
+            return 0
+
+        config = load_config(args, required=False)
+        repo = target_repo(args, config)
+        details = "\n".join(f"> {line}" for line in ticket["description"].splitlines())
+        issue = tasks.create_task(client(args, config, repo), ticket["title"], "\n\n".join((
+            link, f"Source ticket: {ticket['url']}", details,
+        )))
+        print(f"#{issue['number']} {issue['html_url']} (needs approval)")
+        return 0
+    except ERRORS + (RuntimeError, KeyError) as error:
         return fail(str(error))
 
 
@@ -704,6 +742,22 @@ def build_parser() -> argparse.ArgumentParser:
     serve = worker_cmds.add_parser("serve", help="Poll configured repositories and run approved tasks")
     serve.add_argument("--once", action="store_true", help="Run one polling pass and exit")
     worker.set_defaults(func=cmd_worker)
+
+    tracker = commands.add_parser("tracker", help="Connect external tickets to GitHub tasks and PRs")
+    tracker_cmds = tracker.add_subparsers(dest="tracker_cmd", required=True)
+    for name, help_text in (
+        ("show", "Read a ticket and show its PR marker"),
+        ("claim", "Move a ticket to In Progress"),
+        ("queue", "Create an approval-gated GitHub worker task from a ticket"),
+    ):
+        sub = tracker_cmds.add_parser(name, help=help_text)
+        sub.add_argument("reference", metavar="TICKET")
+        if name == "queue":
+            repo_arg(sub)
+    sync = tracker_cmds.add_parser("sync-pr", help="Update a linked ticket from GitHub's current PR state")
+    sync.add_argument("number", type=int, metavar="PR")
+    repo_arg(sync)
+    tracker.set_defaults(func=cmd_tracker)
 
     ticket = commands.add_parser("ticket", help="Linear tickets for agents")
     ticket_cmds = ticket.add_subparsers(dest="ticket_cmd", required=True)

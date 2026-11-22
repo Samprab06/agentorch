@@ -123,7 +123,7 @@ class Linear:
         return label["id"]
 
     # issues ------------------------------------------------------------------
-    ISSUE_FIELDS = """id identifier title description url priority updatedAt createdAt branchName
+    ISSUE_FIELDS = """id identifier title description url priority updatedAt createdAt branchName team { id }
         state { id name type } labels(first: 10) { nodes { id name } }
         inverseRelations(first: 10) { nodes { type issue { identifier state { type } } } }"""
 
@@ -149,8 +149,17 @@ class Linear:
         return rows
 
     def update_issue(self, issue_id: str, **fields: Any) -> None:
-        self.query("""mutation($id: String!, $input: IssueUpdateInput!) {
+        data = self.query("""mutation($id: String!, $input: IssueUpdateInput!) {
             issueUpdate(id: $id, input: $input) { success } }""", {"id": issue_id, "input": fields})
+        if not data["issueUpdate"]["success"]:
+            raise LinearError("Linear did not update the ticket")
+
+    def attach(self, issue_id: str, url: str) -> None:
+        data = self.query("""mutation($input: AttachmentCreateInput!) {
+            attachmentCreate(input: $input) { success } }""",
+                          {"input": {"issueId": issue_id, "title": "GitHub pull request", "url": url}})
+        if not data["attachmentCreate"]["success"]:
+            raise LinearError("Linear did not attach the pull request")
 
     def move(self, issue: Dict[str, Any], kind: str, name: Optional[str] = None) -> Optional[str]:
         state = self.state(kind, name)

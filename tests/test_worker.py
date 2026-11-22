@@ -7,6 +7,7 @@ import threading
 import time
 import unittest
 from pathlib import Path
+from unittest.mock import patch
 
 from agentorch.config import Config
 from agentorch.sandbox import Runner
@@ -115,6 +116,24 @@ class WorkerTests(unittest.TestCase):
         self.gh.add_comment(5, "sam", "approved")
         self.run_tick()
         self.assertEqual(self.worker.state.get(5)["phase"], "review")
+
+    def test_tracker_claim_failure_keeps_approved_draft_pr_and_ticket_link(self):
+        from agentorch.tracker import marker
+
+        link = marker("ENG-5")
+        issue = self.gh.add_issue(5, "Say hi", f"{link}\n\nCreate hello.txt",
+                                  labels=["agent:queued"], author="sam")
+        issue["author_association"] = "COLLABORATOR"
+        self.gh.add_comment(5, "sam", "approved")
+        self.worker.repo.tracker = {"backend": "linear"}
+        with patch("agentorch.tracker.from_settings") as factory:
+            update = factory.return_value.update
+            update.side_effect = ValueError("tracker unavailable")
+            self.run_tick()
+            update.assert_called_once_with("ENG-5", "in-progress")
+        self.assertEqual(self.worker.state.get(5)["phase"], "review")
+        payload, = [data for method, path, data in self.gh.calls if (method, path) == ("POST", "/pulls")]
+        self.assertIn(link, payload["body"])
 
     def test_no_changes_fails_and_retry_starts_new_attempt(self):
         os.environ["FAKE_AGENT_MODE"] = "noop"

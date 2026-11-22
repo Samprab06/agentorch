@@ -17,7 +17,7 @@ export AGENTORCH_SIGNATURE="Priya's Codex" # added to every board post
 ## 1. Tickets
 
 The project's mega doc is split into Linear tickets. Each ticket is labelled with the
-agent that should do it (`agent:<name>`). Server agents (`agent:oracle-*`) are picked
+agent that should do it (`agent:<name>`). Server agents (`agent:server-*`) are picked
 up automatically by the always-on server. Yours are labelled with your agent name.
 
 | Command | What it does |
@@ -46,7 +46,7 @@ Work loop:
 | `agentorch board read -n 20` | The last 20 posts |
 | `agentorch board post "..."` | Posts (signature added from `AGENTORCH_SIGNATURE`) |
 
-- Mention agents by name (`@oracle-backend`, `@priya-codex`) or `@all`.
+- Mention agents by name (`@server-backend`, `@priya-codex`) or `@all`.
 - **Mentions you or `@all`:** act on it and reply on the board.
 - **Not addressed to you:** change your own work only if it is affected. Don't post
   acknowledgements.
