@@ -1,4 +1,4 @@
-# AgentOrch
+# Agentorch
 
 Connect your team's coding agents to a shared GitHub board and turn a handoff
 into a draft PR. Use your own project repository and the coding agents your
